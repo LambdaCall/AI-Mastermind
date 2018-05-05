@@ -33,9 +33,9 @@
       ;We get a result, and append it's result to it
       (push last-response (first (last *guesses*)))
 
-      (setf eligibles (genetic_evolution MAX_POP_SIZE MAX_GENERATIONS scoref board)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
+      (setf eligibles (genetic_evolution MAX_POP_SIZE MAX_GENERATIONS)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
       (loop while (= (length eligibles) 0) ;If we somehow get a empty list, try to populate again using different parameters
-        do (setf eligibles (genetic_evolution (* MAX_POP_SIZE 2) (/ MAX_GENERATIONS 2) scoref board))) ;What i said above
+        do (setf eligibles (genetic_evolution (* MAX_POP_SIZE 2) (/ MAX_GENERATIONS 2)))) ;What i said above
 
       ;check for duplicate guesses and remove from our eligibles lists
       (setf code (pop eligibles)) ;Take the first item in the list
@@ -63,7 +63,7 @@
 ;90% this function is working proparly, we just need to make sure that variable 'v' is able to get all possible random numbers
 (defun mutate (code)
 	(setf i (RANDOM (- *pegs* 1)))
-    (setf v (RANDOM (length *all-colors*)))
+    (setf v (RANDOM (- (length *all-colors*) 1)))
     (setf (nth i code) (nth v *all-colors*))
     (code))
 
@@ -82,7 +82,7 @@
 
 
 
-(defun genetic_evolution (popsize, generations, costfitness, eliteratio, pegs)
+(defun genetic_evolution (popsize, generations, costfitness)
 ;REPLACE *MAX_POP WITH WHATEVER A IS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -106,14 +106,9 @@
 		(setf sons nil)
 		
 		(loop for i from 0 to (- (length population) 1)
-
 			do (if (= i (- (length population) 1))
-				(push sons (nth i population)))
+				(push (nth i population) sons))
 			never (= i (- (length population) 1))
-			; (COND
-			; 	((= i (- (length population) 1)) (push sons (nth i population)))
-			; 	;Break
-			; 	)
 
 			(setf son (crossover (nth i population) (nth (+ i 1) population)))
 			(COND
@@ -121,39 +116,32 @@
 
 			(setf son (permute son))
 
-			(push son sons)
-		) ;End of population loop
+			(push son sons)) ;End of population loop
 
 
 
 		(setf pop_score nil)
-		(loop for c from 0 to (length sons)
+		(loop for c from 0 to (- (length sons) 1)
 			;We should have one list that has a list and other stuff
 			(setf entry (costfitness c))
 			(push c (first entry))
-			(push pop_score entry)
-		)
+			(push entry pop_score))
+
+		(sort pop-score 'compare)
 
 
-      ;SORT POP SCORE BY ?
-      ; # We order our sons population based on fitness score (increasing)
-       ;         pop_score = sorted(pop_score, key=lambda x: x[0])
-      (setf pop_score ) ;not done ;CHECK
 
-      (setf eligible nil)
+		(setf eligible nil)
+		(loop for i from 0 to (- (length pop_score) 1)
+			(COND
+				(= (first (nth i pop_score) 0))
+				(push eligible (nth i pop_score))))
 
-      (loop for i from 0 to (length pop_score)
-          (COND;CHECK
-            (= (first (nth i pop_score) 0))
-              (push eligible (nth i pop_score))
-            )
-        )
-
-      (COND 
+		(COND 
           (= (length eligible) 0)
           (setf h (+ h 1))
           ;CONTINUE
-      )
+          )
 
       (setf new_eligibles nil)
       (loop for i from 0 to (length eligible)
@@ -198,24 +186,27 @@
       (chosen)
   ))
 
+(defun compare (a b)
+       (> (first (first a)) (first (first b))))
 
-;80% this function works, only problem is with trial_result, needs cheking
+;90% this function works, only problem is with trial_result, needs cheking
 (defun get_difference (trial, guess)
-	(setf guess_result (nth 1 guess))
+	(setf guess_result (first guess))
 	(setf guess_code (nth 0 guess))
-	(setf trial_result (play the guess code)) ;NOT WRITE
+	(setf trial_result (process-guess *mastermind* guess))
 	(setf dif '(0,0))
 
-	;CHECK
 	(setf (first dif) (abs (- (first trial_result) (first guess_result))))
 	(setf (last dif) (abs (- (second trial_result) (second guess_result))))
 	(dif))
 
 ;This function is 99% done, just run time check is needed
-(defun fitness_score (trial, code, guesses)
+;trial is the guess index
+;code candidate guess we are trying to have its fitness score
+(defun fitness_score (trial, code)
 	(setf differences nil)
 	(loop for i from 0 to (- (length guesses) 1)
-      (push differences (get_difference trial (nth i guesses))))
+      (push differences (get_difference trial (nth i *guesses*))))
 
     (setf black 0)
     (setf white 0)
