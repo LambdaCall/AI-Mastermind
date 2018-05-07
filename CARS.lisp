@@ -1,5 +1,5 @@
-(defvar *MAX_POP_SIZE* 100)
-(defvar *MAX_GENERATIONS* 150)
+(defvar *MAX_POP_SIZE* 3)
+(defvar *MAX_GENERATIONS* 5)
 
 (defvar *CROSSOVER_PROBABILITY* 0.5)
 (defvar *CROSSOVER_THEN_MUTATION_PROBABILITY* 0.03)
@@ -20,39 +20,9 @@
 (defvar *all-colors* nil)
 (defvar *trial* nil)
 
-
-(defun genetic-algorithm (board colors SCSA last-response)
-	(setf code nil)
-	(COND
-		((equal last-response nil)
-			(setf *guesses* nil)
-			(setf *pegs* board)
-			(setf *all-colors* colors)
-			(setf code '(A A C C))) ;OUR INITIAL GUESS
-		((not (equal last-response nil)) ;Condition such that this is not the first guess
-			;We get a result, and append it's result to it
-			(setf *trial* (third last-response))
-			(push last-response (first *guesses*))
-
-			(setf eligibles (genetic_evolution *MAX_POP_SIZE* *MAX_GENERATIONS*)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
-			(loop while (= (length eligibles) 0) ;If we somehow get a empty list, try to populate again using different parameters
-				do (setf eligibles (genetic_evolution (* *MAX_POP_SIZE* 2) (/ *MAX_GENERATIONS* 2)))) ;What i said above
-
-      		;check for duplicate guesses and remove from our eligibles lists
-      		(setf code (first (pop eligibles))) ;Take the first item in the list
-      		(setf i 0)
-      		(loop while (< i (length *guesses*))  ;Loop through the list of guesses to check if the item we 'poped' is in the list
-        		do (COND
-        				((equal code (rest (nth i *guesses*)));Check if we have guessed the eligiable guess already
-        					(setf code (first (pop eligibles))) (setf i 0))
-        				(T (setf i (+ i 1))))))) ;Reset the counter
-
-	(push code *guesses*)
-	(print 'OURGUESS)
-	(print code)
-	(print (first (rest (rest last-response))))
- 	code)
-
+;NOT SURE IF > or <?
+(defun compare (a b)
+	(> (first a) (first b)))
 
 ;Since this function is seperate function, We use global variable pegs to represent board size
 (defun crossover (code1 code2)
@@ -82,8 +52,33 @@
 				(setf (nth position_b code) color_a ))))
 	code)
 
+;90% this function works, only problem is with trial_result, needs cheking
+(defun get_difference (guess)
+	(setf guess_result (my-process-guess guess))
+	;(setf guess_result (first guess))
+	;(setf guess_code (rest guess))
+	(setf guess_code guess)
+	(setf trial_result (process-guess *mastermind* guess_code))
+	(setf dif '(0 0))
 
+	(setf (first dif) (abs (- (first trial_result) (first guess_result))))
+	(setf (second dif) (abs (- (second trial_result) (second guess_result))))
+	dif)
 
+;This function is 99% done, just run time check is needed
+;code candidate guess we are trying to have its fitness score
+(defun fitness_score (code)
+	(setf differences nil)
+	(loop for i from 0 to (- (length *guesses*) 1)
+		do (push (get_difference code) differences))
+		;do (push (get_difference (nth i *guesses*)) differences))
+
+    (setf black 0)
+    (setf white 0)
+    (loop for i from 0 to (- (length differences) 1)
+      do (setf black (+ black (first (nth i differences))))
+      do (setf white (+ white (second (nth i differences)))))
+    (setf score (+ black white)))
 
 (defun genetic_evolution (popsize generations)
 ;We generate the first population of chromosomes, in a randomized way in order to reduce probability of duplicates
@@ -129,12 +124,25 @@
 		do (sort pop_score 'compare)
 
 		do (setf eligibles nil)
-		do (loop for i from 0 to (- (length pop_score) 1)
-			do (COND
-				((= (first (nth i pop_score)) 0) (push (nth i pop_score) eligibles)))) ;We need rest on the first paranthases
 
-		do (COND
-			((= (length eligibles) 0) (setf h (+ h 1)) CONTINUE))	;NEEDS CHECKING
+
+
+do (loop for i from 0 to (- (length pop_score) 1)
+	do (push (nth i pop_score) eligibles))
+		; do (loop for i from 0 to (- (length pop_score) 1)
+		; 	do (COND
+		; 		((= (first (nth i pop_score)) 0) (push (nth i pop_score) eligibles)))) ;We need rest on the first paranthases
+
+
+
+
+do (COND
+	((= (length eligibles) 0) (setf h (+ h 1))))
+never (= (length eligibles) 0)
+		; do (COND
+		; 	((= (length eligibles) 0) (setf h (+ h 1)) CONTINUE))	;NEEDS CHECKING
+
+
 
 		do (setf new_eligibles nil)
 		do (loop for i from 0 to (- (length eligibles) 1)
@@ -170,30 +178,161 @@
 		do (setf h (+ h 1))
 		return chosen-ones))
 
-(defun compare (a b)
-	(> (first a) (first b)))
 
-;90% this function works, only problem is with trial_result, needs cheking
-(defun get_difference (guess)
-	(setf guess_result (first guess))
-	(setf guess_code (rest guess))
-	(setf trial_result (process-guess *mastermind* guess_code))
-	(setf dif '(0 0))
 
-	(setf (first dif) (abs (- (first trial_result) (first guess_result))))
-	(setf (second dif) (abs (- (second trial_result) (second guess_result))))
-	dif)
 
-;This function is 99% done, just run time check is needed
-;code candidate guess we are trying to have its fitness score
-(defun fitness_score (code)
-	(setf differences nil)
-	(loop for i from 0 to (- (length *guesses*) 1)
-      do (push (get_difference (nth i *guesses*)) differences))
 
-    (setf black 0)
-    (setf white 0)
-    (loop for i from 0 to (- (length differences) 1)
-      do (setf black (+ black (first (nth i differences))))
-      do (setf white (+ white (second (nth i differences)))))
-    (setf score (+ black white)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(defun my-color-counter2 (list)
+	(setf sacit (rest (first list)))
+  (loop with tally = (make-array (length *all-colors*) :initial-element 0)
+     for peg in sacit
+     for index = (spot peg)
+     do (incf (aref tally index))
+     finally (return tally)))
+
+(defun my-process-guess (answer)
+  (loop
+     with guess-color-count = (my-color-counter2 *guesses*)
+     with true-color-count = (color-counter *mastermind* answer)
+     with exact-counter = 0
+     for entry in *guesses*
+     for peg in answer
+     for exact = (equal entry peg)
+     when exact
+     do (incf exact-counter)
+     and do (decf (aref guess-color-count (spot (rest entry))))
+     and do (decf (aref true-color-count (spot (rest entry))))
+     finally
+      (return
+        (list
+          exact-counter
+          (loop
+            for i from 0 to (1- (length *all-colors*))
+            for guessed = (aref true-color-count i)
+            for true = (aref guess-color-count i)
+            when (<= true guessed)
+            sum true
+            else sum guessed)))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(defun genetic-algorithm (board colors SCSA last-response)
+	(setf code nil)
+	(COND
+		((equal last-response nil)
+			(setf *guesses* nil)
+			(setf *pegs* board)
+			(setf *all-colors* colors)
+			(setf code (choose-n-random board colors))) ;OUR INITIAL GUESS MADE BY HELP OF EPSTEIN's FUNCTIONS
+		((not (equal last-response nil)) ;Condition such that this is not the first guess
+			;We get a result, and append it's result to it
+			(setf *trial* (third last-response))
+			(push last-response (first *guesses*))
+
+			(setf eligibles (genetic_evolution *MAX_POP_SIZE* *MAX_GENERATIONS*)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
+			(loop while (= (length eligibles) 0) ;If we somehow get a empty list, try to populate again using different parameters
+				do (setf eligibles (genetic_evolution (* *MAX_POP_SIZE* 2) (/ *MAX_GENERATIONS* 2)))) ;What i said above
+
+
+
+
+
+
+
+
+
+
+(setf eligiable (reverse eligibles))
+(print 'GUESSESTHATWEALREADYDID)
+(print *guesses*)
+(print 'CHOSINGFROMTHISLIST)
+(print eligibles)
+
+
+
+
+
+
+
+
+
+
+
+      		;check for duplicate guesses and remove from our eligibles lists
+      		(setf code (first (pop eligibles))) ;Take the first item in the list
+      		(setf i 0)
+      		(loop while (< i (length *guesses*))  ;Loop through the list of guesses to check if the item we 'poped' is in the list
+        		do (COND
+        				((equal code (rest (nth i *guesses*)));Check if we have guessed the eligiable guess already
+        					(setf code (first (pop eligibles))) (setf i 0))
+        				(T (setf i (+ i 1))))))) ;Reset the counter
+
+	(push code *guesses*)
+	(print 'OURGUESS)
+	(print code)
+	(print (first (rest (rest last-response))))
+ 	code)
+
+
+
+
+;INCREMENT 1 by 1, might be a bit faster
+;(incf generation-counter 1)
