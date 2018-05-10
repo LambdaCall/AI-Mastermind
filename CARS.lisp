@@ -19,37 +19,6 @@
 (defvar *all-colors* nil)
 
 
-(defun CARS (board colors SCSA last-response) ;Our Player
-	(declare (ignore SCSA)) 
-	(setq code nil) ;Code is going to the variable that we guess
-	(COND
-		((equal last-response nil) ;Check if this is our initial guess, if so we set values to global 
-			(setf *guesses* nil)
-			(setf *pegs* board)
-			(setf *all-colors* colors)
-			(setq code (choose-n-random board colors))) 
-		((not (equal last-response nil)) ;Condition such that this is not the first guess
-			;We get a result, and append it's result to it
-			(push last-response (first *guesses*))
-
-			(setf eligibles (genetic_evolution *MAX_POP_SIZE* *MAX_GENERATIONS*)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
-			(loop while (= (length eligibles) 0) ;If we somehow get a empty list, try to populate again using different parameters
-				do (setf eligibles (genetic_evolution (* *MAX_POP_SIZE* 2) (/ *MAX_GENERATIONS* 2)))) ;What i said above
-
-      		;check for duplicate guesses and remove from our eligibles lists
-      		(setq code (first (pop eligibles))) ;Take the first item in the list
-      		(setf i 0)
-      		(loop while (< i (length *guesses*))  ;Loop through the list of guesses to check if the item we 'poped' is in the list
-        		do (COND
-        				((equal code (rest (nth i *guesses*)));Check if we have guessed the eligiable guess already
-        					(setq code (first (pop eligibles))) (setf i 0))
-        				(T (setf i (+ i 1))))))) ;Reset the counter
-
-	(push code *guesses*) ;Add the guess we're going to submit into our global guess list
- 	code ;Return our guess
- 	)
-
-
 (defun random-range-for () ;Generates two random numbers such that the first is smaller than the second
   (let
     (
@@ -90,6 +59,55 @@
 			(rotatef (nth (random *pegs*) code) (nth (random *pegs*) code)))) ;Swap two positions
 	code) ;Give code
 
+(defun compare (a b) ;Sorts by looking at fitness score 
+	(> (first a) (first b)))
+
+;Modified version of your (color-counter) function
+(defun my-color-counter (colors list)
+  (loop with tally = (make-array (length colors) :initial-element 0)
+     for peg in list
+     for index = (spot peg)
+     do (incf (aref tally index))
+     finally (return tally)))
+
+;Modified version of your function (process-guess)
+(defun my-process-guess (answer guess)
+  (loop
+     with guess-color-count = (my-color-counter *all-colors* guess)
+     with true-color-count = (my-color-counter *all-colors* answer)
+     with exact-counter = 0
+     for entry in guess
+     for peg in answer
+     for exact = (equal entry peg)
+     when exact
+     do (incf exact-counter)
+     and do (decf (aref guess-color-count (spot entry)))
+     and do (decf (aref true-color-count (spot entry)))
+     finally
+      (return
+        (list
+          exact-counter
+          (loop
+            for i from 0 to (1- (length *all-colors*))
+            for guessed = (aref true-color-count i)
+            for true = (aref guess-color-count i)
+            when (<= true guessed)
+            sum true
+            else sum guessed)))))
+
+;Helper function to fitness_score to calculate fitness
+;Goes through the previous guesses we already did
+(defun get_difference (answer guess)
+	(setf guess_result (my-process-guess (rest answer) guess))
+	(+
+		(abs (- (first (first answer)) (first guess_result)))
+		(abs (- (second (first answer)) (second guess_result)))))
+
+;Calculates the fitness score of the candidate guess 'code'
+(defun fitness_score (code)
+	(setf differences nil)
+	(loop for i from 0 to (- (length *guesses*) 1)
+		sum (get_difference (nth i *guesses*) code)))
 
 
 (defun genetic_evolution (popsize generations) ;Generate a population 
@@ -181,52 +199,32 @@
 		do (setf h (+ h 1)) ;Increase generation count
 		return chosen-ones))
 
-(defun compare (a b) ;Sorts by looking at fitness score 
-	(> (first a) (first b)))
+(defun CARS (board colors SCSA last-response) ;Our Player
+	(declare (ignore SCSA)) 
+	(setq code nil) ;Code is going to the variable that we guess
+	(COND
+		((equal last-response nil) ;Check if this is our initial guess, if so we set values to global 
+			(setf *guesses* nil)
+			(setf *pegs* board)
+			(setf *all-colors* colors)
+			(setq code (choose-n-random board colors))) 
+		((not (equal last-response nil)) ;Condition such that this is not the first guess
+			;We get a result, and append it's result to it
+			(push last-response (first *guesses*))
 
-;Helper function to fitness_score to calculate fitness
-;Goes through the previous guesses we already did
-(defun get_difference (answer guess)
-	(setf guess_result (my-process-guess (rest answer) guess))
-	(+
-		(abs (- (first (first answer)) (first guess_result)))
-		(abs (- (second (first answer)) (second guess_result)))))
+			(setf eligibles (genetic_evolution *MAX_POP_SIZE* *MAX_GENERATIONS*)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
+			(loop while (= (length eligibles) 0) ;If we somehow get a empty list, try to populate again using different parameters
+				do (setf eligibles (genetic_evolution (* *MAX_POP_SIZE* 2) (/ *MAX_GENERATIONS* 2)))) ;What i said above
 
-;Calculates the fitness score of the candidate guess 'code'
-(defun fitness_score (code)
-	(setf differences nil)
-	(loop for i from 0 to (- (length *guesses*) 1)
-		sum (get_difference (nth i *guesses*) code)))
+      		;check for duplicate guesses and remove from our eligibles lists
+      		(setq code (first (pop eligibles))) ;Take the first item in the list
+      		(setf i 0)
+      		(loop while (< i (length *guesses*))  ;Loop through the list of guesses to check if the item we 'poped' is in the list
+        		do (COND
+        				((equal code (rest (nth i *guesses*)));Check if we have guessed the eligiable guess already
+        					(setq code (first (pop eligibles))) (setf i 0))
+        				(T (setf i (+ i 1))))))) ;Reset the counter
 
-;Modified version of your function (process-guess)
-(defun my-process-guess (answer guess)
-  (loop
-     with guess-color-count = (my-color-counter *all-colors* guess)
-     with true-color-count = (my-color-counter *all-colors* answer)
-     with exact-counter = 0
-     for entry in guess
-     for peg in answer
-     for exact = (equal entry peg)
-     when exact
-     do (incf exact-counter)
-     and do (decf (aref guess-color-count (spot entry)))
-     and do (decf (aref true-color-count (spot entry)))
-     finally
-      (return
-        (list
-          exact-counter
-          (loop
-            for i from 0 to (1- (length *all-colors*))
-            for guessed = (aref true-color-count i)
-            for true = (aref guess-color-count i)
-            when (<= true guessed)
-            sum true
-            else sum guessed)))))
-
-;Modified version of your (color-counter) function
-(defun my-color-counter (colors list)
-  (loop with tally = (make-array (length colors) :initial-element 0)
-     for peg in list
-     for index = (spot peg)
-     do (incf (aref tally index))
-     finally (return tally)))
+	(push code *guesses*) ;Add the guess we're going to submit into our global guess list
+ 	code ;Return our guess
+ 	)
