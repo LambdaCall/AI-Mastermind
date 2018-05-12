@@ -1,15 +1,15 @@
-(defvar *MAX_POP_SIZE* 100)
-(defvar *MAX_GENERATIONS* 150)
+(defconstant *MAX_POP_SIZE* 100)
+(defconstant *MAX_GENERATIONS* 150)
 
-(defvar *CROSSOVER_PROBABILITY* 0.5)
-(defvar *CROSSOVER_THEN_MUTATION_PROBABILITY* 0.03)
-(defvar *PERMUTATION_PROBABILITY* 0.03)
-(defvar *INVERSION_PROBABILITY* 0.02)
+(defconstant *CROSSOVER_PROBABILITY* 0.5)
+(defconstant *CROSSOVER_THEN_MUTATION_PROBABILITY* 0.03)
+(defconstant *PERMUTATION_PROBABILITY* 0.03)
+(defconstant *INVERSION_PROBABILITY* 0.02);;;;;;;;;;;;;;;;;;;;"WE ARE NOT USING THIS VARIABLE"
 
-(defvar *ELITE_RATIO* 0.4)
-
-(defvar *WEIGHT_BLACK* 5) ; weight of well placed colors we give them a slightly better weight
-(defvar *WEIGHT_WHITE* 3) ; weight of bad placed colors
+(defconstant *ELITE_RATIO* 0.4);;;;;;;;;;;;;;;;;;;;"WE ARE NOT USING THIS VARIABLE"
+;;;;;;;;;;;;;;;;;;;;"WE ARE NOT USING THESE TWO VARIABLES";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defconstant *WEIGHT_BLACK* 5) ; weight of well placed colors we give them a slightly better weight
+(defconstant *WEIGHT_WHITE* 3) ; weight of bad placed colors
 
 (defvar *guesses* nil)
 
