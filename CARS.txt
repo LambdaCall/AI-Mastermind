@@ -1,0 +1,11 @@
+(play-tournament *mastermind* 'CARS 'two-color-alternating 25)
+
+CARS 
+(SCORE 60.21112) 
+(12.042224 0 0)
+
+(play-tournament *mastermind* 'CARS 'two-color-alternating 25)
+
+CARS 
+(SCORE 57.38396) 
+(11.476792 0 0)
