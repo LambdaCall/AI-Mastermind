@@ -131,14 +131,6 @@
 		do (setq person (funcall SCSA *pegs* *all-colors*))
 		do (push person population))
 
-
-;Set of our favorite choices for the next play (Elite Group Ei)
-	;(setf chosen-ones nil)
-	;(setf h 1)
-	;(setf k 0)
-
-
-
 	(loop while (and (<= (length chosen-ones) popsize) (<= h generations)) ;Keep looping until we get max popsize or hit the generation limit
 		do (setq sons nil)  ;The list that will hold all the "sons"/dererived guesses from our initail/parent guess
 		
@@ -205,6 +197,7 @@
 		return chosen-ones)))
 
 
+;main function which returns a guess to play-tournament
 (defun CARS (board colors SCSA last-response) ;Our Player
 	(let
 		((code)

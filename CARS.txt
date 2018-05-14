@@ -1,11 +1,29 @@
-(play-tournament *mastermind* 'CARS 'two-color-alternating 25)
+(Mastermind 4 6 ‘prefer-fewer)
+(play-tournament *mastermind* 'CARS 'prefer-fewer 25)
 
 CARS 
-(SCORE 60.21112) 
-(12.042224 0 0)
+(SCORE 67.41832) 
+(13.4836645 0 0)
 
-(play-tournament *mastermind* 'CARS 'two-color-alternating 25)
+645 0 0)
+(mastermind 4 6 'ab-color)
+(play-tournament *mastermind* 'CARS 'ab-color 25)
 
 CARS 
-(SCORE 57.38396) 
-(11.476792 0 0)
+(SCORE 81.76314) 
+(16.352627 0 0)
+
+
+(mastermind 4 7 'prefer-fewer)
+(play-tournament *mastermind* 'CARS 'prefer-fewer 25)
+
+CARS 
+(SCORE 61.45215) 
+(12.29043 0 0)
+
+(mastermind 4 7 'ab-color)
+(play-tournament *mastermind* 'CARS 'ab-color 25)
+
+CARS 
+(SCORE 76.66991) 
+(15.3339815 0 0)

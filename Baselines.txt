@@ -1,19 +1,23 @@
 Baseline 1:
+(play-tournament *Mastermind* 'baseline1 'two-color 25)
+
+(SCORE 18.858902) 
+(3.7717805 9 0)
 
 
-
-Baseline 2:
-
+BASELINE2 
+(SCORE 26.781843) 
+(5.3563685 14 0)
 
 Baseline 3:
 (Mastermind 4 6 'two-color-alternating)
-(play-tournament *Mastermind* 'CARS 'two-color-alternating 25)
-CARS 
+(play-tournament *Mastermind* ‘BASELINE3 'two-color-alternating 25)
+BASELINE3 
 (SCORE 41.452976) 
 (8.290595 0 0)
 
 Baseline 4:
-(play-tournament *mastermind* 'CARS 'insert-colors 25)
-CARS 
+(play-tournament *mastermind* ‘BASELINE4 'insert-colors 25)
+BASELINE4
 (SCORE 42.305634) 
 (8.461126 5 0)

@@ -40,7 +40,7 @@
                     (all-permutations (rest lst)))
             (all-permutations (append (rest lst) (list (first lst))) (rest remain))))))
 
-(defun CARS (board colors SCSA last-response)
+(defun BASELINE3 (board colors SCSA last-response)
 	(declare (ignore SCSA))
 	;if last-response is nil, this is the first call to this function. In such case, call init which will initialize all necessary variables.
 	(if (= (length last-response) 0)
