@@ -107,7 +107,6 @@
 
 ;Calculates the fitness score of the candidate guess 'code'
 (defun fitness_score (code)
-	;(setf differences nil)
 	(loop for i from 0 to (- (length *guesses*) 1)
 		sum (get_difference (nth i *guesses*) code)))
 
@@ -125,7 +124,6 @@
 			(pop_score)
 			(eligibles)
 			(new_eligibles)
-			(rcolor)
 			(chosen-ones nil))
 ;We generate the first population of chromosomes, in a randomized way in order to reduce probability of duplicates
 	;(setf population nil) ;A list to hold our generated population
@@ -173,7 +171,7 @@
 				((= (first (nth i pop_score)) 0) (push (nth i pop_score) eligibles)))) ;We need rest on the first paranthases
 
 		do (COND
-			((= (length eligibles) 0) (setq h (+ h 1)) (CONTINUE)))	;if the list (eligibles is empty) just leave and go to the next generation
+			((= (length eligibles) 0) (incf h) (CONTINUE)))	;if the list (eligibles is empty) just leave and go to the next generation
 
 		do (setq new_eligibles nil) 
 		do (loop for i from 0 to (- (length eligibles) 1) ;Copy the eligible list into new_eligibles
@@ -185,10 +183,7 @@
           	;CHECK IF ELIGIBLE OF I IS IN THE CHOSEN LIST, IF SO REMOVE IT FROM THE CHOSEN SET AND THE ONE WE REMOVED FROM CHOSEN ONE WITH A NEW RANDOM "PERSON"
           		((find (nth i eligibles) chosen-ones)
           			(remove (nth i eligibles) chosen-ones)
-          			(setq person nil)
-          			(loop for j from 0 to (- *pegs* 1) 
-          				do (setq rcolor (RANDOM-CHOOSER *all-colors*))
-          				do (push rcolor person))
+          			(setq person (funcall SCSA *pegs* *all-colors*))
           			(push person chosen-ones))))
 
 		do (loop for eligible in eligibles until (= (length chosen-ones) popsize) ;If the element isn't in our chosen list add it to our chosen list
@@ -203,17 +198,14 @@
 
 		;Keep adding random guesses to the population till we hit the cap
 		do (loop while (< j popsize)
-			do (setq person nil)
-			do (loop for i from 0 to (- *pegs* 1)
-				do (setq rcolor (RANDOM-CHOOSER *all-colors*))
-				do (push rcolor person))
+			do (setq person (funcall SCSA *pegs* *all-colors*))
           	do (push person population)
-        	do (setq j (+ j 1)))
-		do (setq h (+ h 1)) ;Increase generation count
+        	do (incf j))
+		do (incf h) ;Increase generation count
 		return chosen-ones)))
 
+
 (defun CARS (board colors SCSA last-response) ;Our Player
-	;(declare (ignore SCSA))
 	(let
 		((code)
 		(eligibles)
@@ -231,7 +223,6 @@
 			(setq eligibles (genetic_evolution *MAX_POP_SIZE* *MAX_GENERATIONS* SCSA)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
 			(loop while (= (length eligibles) 0) ;If we somehow get a empty list, try to populate again using different parameters
 				do (setq eligibles (genetic_evolution (* *MAX_POP_SIZE* 2) (/ *MAX_GENERATIONS* 2) SCSA))) ;What i said above
-(print eligibles)
 
       		;check for duplicate guesses and remove from our eligibles lists
       		(setq code (first (pop eligibles))) ;Take the first item in the list
@@ -240,9 +231,7 @@
         		do (COND
         				((equal code (rest (nth i *guesses*)));Check if we have guessed the eligiable guess already
         					(setq code (first (pop eligibles))) (setq i 0))
-        				(T (setq i (+ i 1))))))) ;Reset the counter
+        				(T (incf i)))))) ;Reset the counter
 
 	(push code *guesses*) ;Add the guess we're going to submit into our global guess list
-	(print last-response)
- 	(print code) ;Return our guess
- 	))
+ 	code)) ;Return our guess
