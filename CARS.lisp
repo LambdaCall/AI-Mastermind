@@ -1,15 +1,12 @@
-(defconstant *MAX_POP_SIZE* 100)
-(defconstant *MAX_GENERATIONS* 150)
+(defvar *MAX_POP_SIZE* 100)
+(defvar *MAX_GENERATIONS* 150)
 
-(defconstant *CROSSOVER_PROBABILITY* 0.5)
-(defconstant *CROSSOVER_THEN_MUTATION_PROBABILITY* 0.03)
-(defconstant *PERMUTATION_PROBABILITY* 0.03)
-(defconstant *INVERSION_PROBABILITY* 0.02);;;;;;;;;;;;;;;;;;;;"WE ARE NOT USING THIS VARIABLE"
+(defvar *CROSSOVER_PROBABILITY* 0.5)
+(defvar *CROSSOVER_THEN_MUTATION_PROBABILITY* 0.03)
+(defvar *PERMUTATION_PROBABILITY* 0.03)
 
-(defconstant *ELITE_RATIO* 0.4);;;;;;;;;;;;;;;;;;;;"WE ARE NOT USING THIS VARIABLE"
-;;;;;;;;;;;;;;;;;;;;"WE ARE NOT USING THESE TWO VARIABLES";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defconstant *WEIGHT_BLACK* 5) ; weight of well placed colors we give them a slightly better weight
-(defconstant *WEIGHT_WHITE* 3) ; weight of bad placed colors
+(defvar *WEIGHT_BLACK* 5) ; weight of well placed colors we give them a slightly better weight
+(defvar *WEIGHT_WHITE* 3) ; weight of bad placed colors
 
 (defvar *guesses* nil)
 
@@ -105,8 +102,8 @@
 		(guess_result)
 		(setq guess_result (my-process-guess (rest answer) guess))
 	(+
-		(abs (- (first (first answer)) (first guess_result)))
-		(abs (- (second (first answer)) (second guess_result))))))
+		(* *WEIGHT_BLACK* (abs (- (first (first answer)) (first guess_result))))
+		(* *WEIGHT_WHITE* (abs (- (second (first answer)) (second guess_result)))))))
 
 ;Calculates the fitness score of the candidate guess 'code'
 (defun fitness_score (code)
@@ -115,12 +112,11 @@
 		sum (get_difference (nth i *guesses*) code)))
 
 
-(defun genetic_evolution (popsize generations) ;Generate a population
+(defun genetic_evolution (popsize generations SCSA) ;Generate a population
 	(let
 		(
 			(population)
 			(person)
-			;(k 0) WHY DO WE HAVE THIS, NOT USED AT ALL
 			(h 1)
 			(j)
 			(son)
@@ -134,10 +130,7 @@
 ;We generate the first population of chromosomes, in a randomized way in order to reduce probability of duplicates
 	;(setf population nil) ;A list to hold our generated population
 	(loop for j from 0 to (- popsize 1) ;Generate popsize-1 random "guesses" and stores them into populatiobn
-		do (setq person nil)
-		do (loop for i from 0 to (- *pegs* 1)
-			do (setq rcolor (RANDOM-CHOOSER *all-colors*))
-			do (push rcolor person))
+		do (setq person (funcall SCSA *pegs* *all-colors*))
 		do (push person population))
 
 
@@ -220,7 +213,7 @@
 		return chosen-ones)))
 
 (defun CARS (board colors SCSA last-response) ;Our Player
-	(declare (ignore SCSA))
+	;(declare (ignore SCSA))
 	(let
 		((code)
 		(eligibles)
@@ -230,14 +223,15 @@
 			(setf *guesses* nil)
 			(setf *pegs* board)
 			(setf *all-colors* colors)
-			(setq code (choose-n-random board colors))) 
+			(setq code (funcall SCSA board colors)))
 		((not (equal last-response nil)) ;Condition such that this is not the first guess
 			;We get a result, and append it's result to it
 			(push last-response (first *guesses*))
 
-			(setq eligibles (genetic_evolution *MAX_POP_SIZE* *MAX_GENERATIONS*)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
+			(setq eligibles (genetic_evolution *MAX_POP_SIZE* *MAX_GENERATIONS* SCSA)) ;Generate a list of new eligiable guesses. ;scoref is fitness function, needs implementation?
 			(loop while (= (length eligibles) 0) ;If we somehow get a empty list, try to populate again using different parameters
-				do (setq eligibles (genetic_evolution (* *MAX_POP_SIZE* 2) (/ *MAX_GENERATIONS* 2)))) ;What i said above
+				do (setq eligibles (genetic_evolution (* *MAX_POP_SIZE* 2) (/ *MAX_GENERATIONS* 2) SCSA))) ;What i said above
+(print eligibles)
 
       		;check for duplicate guesses and remove from our eligibles lists
       		(setq code (first (pop eligibles))) ;Take the first item in the list
@@ -249,5 +243,6 @@
         				(T (setq i (+ i 1))))))) ;Reset the counter
 
 	(push code *guesses*) ;Add the guess we're going to submit into our global guess list
- 	code ;Return our guess
+	(print last-response)
+ 	(print code) ;Return our guess
  	))
