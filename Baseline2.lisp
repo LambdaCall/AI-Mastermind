@@ -1,4 +1,3 @@
-;Implemented by Sacit Gonen
 (defvar *avoid-colors* nil) ;Stores list of colors to be avoided
 (defvar *p-list* nil) ;Holds list of all possible quesses which are generated through permutation
 (defvar *our-guess* nil) ;our guess stored at global variable
