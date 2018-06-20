@@ -1,6 +1,8 @@
 (defvar *p-list* nil)
 (defvar *new-list* nil)
+(defvar *unneccessary* nil)
 
+;testing performance using brute force
 
 ; returns all possible combinations without duplicates, but without all variations in each position
 ; code from, https://stackoverflow.com/questions/2087693/how-can-i-get-all-possible-permutations-of-a-list-with-common-lisp
